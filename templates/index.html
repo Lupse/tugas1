@@ -7,8 +7,12 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Hello World
-    </h1>
+    {% include 'navbar.html' %}  <!-- Include Navbar -->
     
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
 </body>
 </html>
