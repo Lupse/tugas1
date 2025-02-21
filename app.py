@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, flash, url_for
 from flask_bcrypt import Bcrypt
 from flask_session import Session
 from db_config import init_mysql
@@ -140,6 +140,33 @@ def delete_book(book_id):
 def logout():
     session.clear()
     return redirect('/login')
+
+@app.route('/membership')
+def membership():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT id, name, joined_date, email FROM member")  
+    members = cur.fetchall()
+    cur.close()
+    return render_template('membership.html', members=members)
+
+
+@app.route('/add_member', methods=['GET', 'POST'])
+def add_member():
+    if request.method == 'POST':
+        id = request.form['Id']
+        name = request.form['Name']
+        join_date = request.form['join_date']
+        email = request.form['email']
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO member (id, name, joined_date, email) VALUES (%s, %s, %s, %s)",
+                    (id, name, join_date, email))
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect(url_for('membership'))  # Redirect to membership page after adding
+
+    return render_template('add_member.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
