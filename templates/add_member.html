@@ -1,30 +1,72 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Document</title>
-</head>
-<body>
-    {% extends 'index.html' %}
-
+{% extends 'index.html' %}
 {% block content %}
-    <h1 id="Heading">Form Membership</h1>
-    <p id="Isi">Isi data member dengan lengkap</p>
 
-    <form action="" id="form">
-        <label for="Id">Id</label><br>
-        <input type="text" id="Id" name="Id">
-        <label for="Name">Nama Lengkap</label><br>
-        <input type="text" id="Name" name="Name">
-        <label for="join_date">Tanggal bergabung</label><br>
-        <input type="date" id="join_date" name="join_date">
-        <label for="Email">Email</label><br>
-        <input type="text" id="email" name="email">
-    </form>
+<style>
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 800px; /* Limits form width for better readability */
+    margin: auto; /* Centers the form */
+}
 
+.form-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+}
 
-{% endblock %}
+.form-container label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-align: left;
+    
+}
+
+.form-container input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+button {
+    width: 100%;
+    background-color: #B5C18E;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+</style>
+
+<div>
+    <h1 style= 'margin-block:8px; padding:2px'; >Membership Form</h1>
+</div>
+
+<form action="{{ url_for('add_member') }}" method="POST" class="form-container">
+    <label for="Id">Id</label>
+    <input type="text" id="Id" name="Id" required>
+
+    <label for="Name">Full Name</label>
+    <input type="text" id="Name" name="Name" required>
+
+    <label for="join_date">Date</label>
+    <input type="date" id="join_date" name="join_date" required>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required>
+
+    <button type="submit">Add Member</button>
+</form>
 </body>
-</html>
+{% endblock %}

@@ -1,38 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Document</title>
-</head>
 {% extends 'index.html' %}
 
 {% block content %}
-   <h1>Halaman Membership</h1>
-   <p>All Members</p>
-   <a href="{{ url_for('add_member_page') }}">
-    <button>Add Members</button>
-</a>
+<style>
+
+.section-1 {
+    display: flex;
+    justify-content: space-between; /* Pushes elements to opposite ends */
+    align-items: center;
+    width: 100%;
+    padding: 20px 20px; /* Adds some horizontal spacing */
+    margin-bottom: 15px; /* Adds space below the button */
+}
+
+.button {
+    display: inline-block;
+    padding: 6px 12px; /* Smaller padding */
+    font-size: 14px; /* Smaller font */
+    background-color: #914F1E;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    width: auto; /* Prevents stretching */
+    white-space: nowrap; /* Keeps text in one line */
+}
 
 
-<div class="table-container">
+.button:hover {
+    background-color: #9AA878;
+}
+
+    .table-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    background-color: white;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+table {
+    width: 100%; /* Ensure the table takes full width */
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+th {
+    background: #B5C18E;
+    color: white;
+}
+
+tbody tr:hover {
+    background-color: #f5f5f5; /* Highlight row on hover */
+}
+
+/* Membulatkan sudut bawah */
+tr:last-child td:first-child {
+            border-bottom-left-radius: 10px;
+        }
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 10px;
+        }
+
+/* Membulatkan sudut atas */
+th:first-child {
+            border-top-left-radius: 10px;
+        }
+        th:last-child {
+            border-top-right-radius: 10px;
+        }
+
+</style>    
+
+<div class="section-1">
+
+    <h1 style= 'margin-block:8px; padding:2px';>
+        Membership Page</h1>
+    <a href="{{ url_for('add_member') }}" class="button">Add Member</a>
+</div>   
+
+   <div class="table-content">
     <table>
-        <tr>
-            <th>Id</th>
-            <th>Nama</th>
-            <th>Tanggal Bergabung</th>
-            <th>Email</th>
-        </tr>
-        {% for member in members %}
-        <tr>
-            <td>{{ member.id }}</td>
-            <td>{{ member.name }}</td>
-            <td>{{ member.join_date }}</td>
-            <td>{{ member.email }}</td>
-        </tr>
-        {% endfor %}
-       </table>
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Joined date</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member in members %}
+            <tr>
+                <td>{{ member[0] }}</td>
+                <td>{{ member[1] }}</td>
+                <td>{{ member[2] }}</td>
+                <td>{{ member[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
    
 {% endblock %}
