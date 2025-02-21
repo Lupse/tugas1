@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Document</title>
+</head>
+<body>
+    {% extends 'index.html' %}
+
+{% block content %}
+    <h1 id="Heading">Form Membership</h1>
+    <p id="Isi">Isi data member dengan lengkap</p>
+
+    <form action="" id="form">
+        <label for="Id">Id</label><br>
+        <input type="text" id="Id" name="Id">
+        <label for="Name">Nama Lengkap</label><br>
+        <input type="text" id="Name" name="Name">
+        <label for="join_date">Tanggal bergabung</label><br>
+        <input type="date" id="join_date" name="join_date">
+        <label for="Email">Email</label><br>
+        <input type="text" id="email" name="email">
+    </form>
+
+
+{% endblock %}
+</body>
+</html>
