@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+</head>
+<body>
+    <h2>Sign Up</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                {% if category == 'danger' %}
+                    <p style="color: red;">{{ message }}</p>
+                {% else %}
+                    <p style="color: green;">{{ message }}</p>
+                {% endif %}
+            {% endfor %}
+        {% endwith %}
+        
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <form method="POST">
+        <label>Username:</label>
+        <input type="text" name="username" required><br><br>
+        
+        <label>Password:</label>
+        <input type="password" name="password" required><br><br>
+        
+        <button type="submit">Sign Up</button>
+    </form>
+    
+    <p>Sudah punya akun? <a href="{{ url_for('login') }}">Sign In</a></p>
+</body>
+</html>
