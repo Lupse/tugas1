@@ -19,5 +19,47 @@ def main():
     cur.close()
     return render_template('dashboard.html', books=books)
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Akun berhasil dibuat! Silakan login.', 'success')
+        return redirect('/login')
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, password FROM users WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user and bcrypt.check_password_hash(user[1], password):
+            session['user_id'] = user[0]
+            session['username'] = username
+            return redirect('/')
+        else:
+            flash('Login gagal. Periksa kembali username dan password!', 'danger')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
 if __name__ == '__main__':
     app.run(debug=True)
