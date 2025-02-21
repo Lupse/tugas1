@@ -16,8 +16,45 @@ def main():
     cur = mysql.connection.cursor()
     cur.execute("SELECT id, title, author, isbn, genre, language, total_copies, available_copies, shelf, status FROM books")
     books = cur.fetchall()
+
+    # Menghitung total buku
+    cur.execute("SELECT SUM(total_copies) FROM books")
+    total_books = cur.fetchone()[0]
+
+    # Menghitung buku yang tersedia
+    cur.execute("SELECT SUM(available_copies) FROM books WHERE status = 'available'")
+    available_books = cur.fetchone()[0]
+
+    # Menghitung buku yang dipinjam
+    cur.execute("SELECT COUNT(*) FROM books WHERE status = 'lended'")
+    lended_books = cur.fetchone()[0]
+
     cur.close()
-    return render_template('dashboard.html', books=books)
+    return render_template('dashboard.html', books=books, total_books=total_books, available_books=available_books, lended_books=lended_books)
+
+@app.route('/add_book', methods=['GET', 'POST'])
+def add_book():
+    if request.method == 'POST':
+        title = request.form['title']
+        author = request.form['author']
+        isbn = request.form['isbn']
+        genre = request.form['genre']
+        language = request.form['language']
+        total_copies = request.form['total_copies']
+        available_copies = request.form['available_copies']
+        shelf = request.form['shelf']
+        status = request.form['status']
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO books (title, author, isbn, genre, language, total_copies, available_copies, shelf, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", 
+                    (title, author, isbn, genre, language, total_copies, available_copies, shelf, status))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Buku berhasil ditambahkan!', 'success')
+        return redirect('/')
+
+    return render_template('add_book.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -55,6 +92,49 @@ def login():
             flash('Login gagal. Periksa kembali username dan password!', 'danger')
 
     return render_template('login.html')
+
+@app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
+def edit_book(book_id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+    book = cur.fetchone()
+    cur.close()
+
+    if request.method == 'POST':
+        title = request.form['title']
+        author = request.form['author']
+        isbn = request.form['isbn']
+        genre = request.form['genre']
+        language = request.form['language']
+        total_copies = request.form['total_copies']
+        available_copies = request.form['available_copies']
+        shelf = request.form['shelf']
+        status = request.form['status']
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            UPDATE books
+            SET title = %s, author = %s, isbn = %s, genre = %s, language = %s, total_copies = %s, available_copies = %s, shelf = %s, status = %s
+            WHERE id = %s
+        """, (title, author, isbn, genre, language, total_copies, available_copies, shelf, status, book_id))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Buku berhasil diperbarui!', 'success')
+        return redirect('/')
+
+    return render_template('edit_book.html', book=book)
+
+@app.route('/delete_book/<int:book_id>', methods=['POST'])
+def delete_book(book_id):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM books WHERE id = %s", (book_id,))
+    mysql.connection.commit()
+    cur.close()
+
+    flash('Buku berhasil dihapus!', 'success')
+    return redirect('/')
+
 
 @app.route('/logout')
 def logout():
