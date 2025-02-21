@@ -123,7 +123,7 @@ def edit_book(book_id):
         flash('Buku berhasil diperbarui!', 'success')
         return redirect('/')
 
-    return render_template('edit_book.html', book=book)
+    return render_template('edit_book.html', book=book, book_id=book_id)
 
 @app.route('/delete_book/<int:book_id>', methods=['POST'])
 def delete_book(book_id):
@@ -167,6 +167,31 @@ def add_member():
         return redirect(url_for('membership'))  # Redirect to membership page after adding
 
     return render_template('add_member.html')
+
+@app.route('/lend_book', methods=['GET', 'POST'])
+def lend_book():
+    if request.method == 'POST':
+        title = request.form['title']
+        member_name = request.form['member_name']
+        date = request.form['date']
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO lending (title, mem_name, date) VALUES (%s, %s, %s)", 
+                    (title, member_name, date))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Buku berhasil dipinjam!', 'success')
+        return redirect('/lend_book')
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT title FROM books")
+    books = cur.fetchall()
+    cur.execute("SELECT id, title, mem_name, date FROM lend")
+    lendings = cur.fetchall()
+    cur.close()
+
+    return render_template('lending.html', books=books, lendings=lendings)
 
 if __name__ == '__main__':
     app.run(debug=True)
