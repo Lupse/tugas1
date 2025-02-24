@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
-from flask_bcrypt import Bcrypt
 from flask_session import Session
 from db_config import init_mysql
+from decorators import login_required  # Import the login_required decorator
 
 app = Flask(__name__)
 app.secret_key = "rahasia_super_secret"
@@ -9,9 +9,49 @@ app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 
 mysql = init_mysql(app)
-bcrypt = Bcrypt(app)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, password FROM user WHERE username = %s", (username,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user and user[1] == password:
+            session['user_id'] = user[0]
+            return redirect(url_for('main'))
+        else:
+            flash('Invalid username or password', 'danger')
+
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO user (username, password) VALUES (%s, %s)", (username, password))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Account created successfully! Please log in.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('signup.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 @app.route('/')
+@login_required
 def main():
     cur = mysql.connection.cursor()
     cur.execute("SELECT id, title, author, isbn, genre, language, total_copies, available_copies, shelf, status FROM books")
@@ -26,13 +66,18 @@ def main():
     available_books = cur.fetchone()[0]
 
     # Menghitung buku yang dipinjam
-    cur.execute("SELECT COUNT(*) FROM books WHERE status = 'lended'")
+    cur.execute("SELECT COUNT(*) FROM lend")
     lended_books = cur.fetchone()[0]
 
+    # Menghitung total membership
+    cur.execute("SELECT COUNT(*) FROM member")
+    total_members = cur.fetchone()[0]
+
     cur.close()
-    return render_template('dashboard.html', books=books, total_books=total_books, available_books=available_books, lended_books=lended_books)
+    return render_template('dashboard.html', books=books, total_books=total_books, available_books=available_books, lended_books=lended_books, total_members=total_members)
 
 @app.route('/add_book', methods=['GET', 'POST'])
+@login_required
 def add_book():
     if request.method == 'POST':
         title = request.form['title']
@@ -56,44 +101,8 @@ def add_book():
 
     return render_template('add_book.html')
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-
-        cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
-        mysql.connection.commit()
-        cur.close()
-
-        flash('Akun berhasil dibuat! Silakan login.', 'success')
-        return redirect('/login')
-
-    return render_template('signup.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        cur = mysql.connection.cursor()
-        cur.execute("SELECT id, password FROM users WHERE username = %s", (username,))
-        user = cur.fetchone()
-        cur.close()
-
-        if user and bcrypt.check_password_hash(user[1], password):
-            session['user_id'] = user[0]
-            session['username'] = username
-            return redirect('/')
-        else:
-            flash('Login gagal. Periksa kembali username dan password!', 'danger')
-
-    return render_template('login.html')
-
 @app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
+@login_required
 def edit_book(book_id):
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM books WHERE id = %s", (book_id,))
@@ -126,6 +135,7 @@ def edit_book(book_id):
     return render_template('edit_book.html', book=book, book_id=book_id)
 
 @app.route('/delete_book/<int:book_id>', methods=['POST'])
+@login_required
 def delete_book(book_id):
     cur = mysql.connection.cursor()
     cur.execute("DELETE FROM books WHERE id = %s", (book_id,))
@@ -135,13 +145,8 @@ def delete_book(book_id):
     flash('Buku berhasil dihapus!', 'success')
     return redirect('/')
 
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect('/login')
-
 @app.route('/membership')
+@login_required
 def membership():
     cur = mysql.connection.cursor()
     cur.execute("SELECT id, name, joined_date, email FROM member")  
@@ -149,8 +154,8 @@ def membership():
     cur.close()
     return render_template('membership.html', members=members)
 
-
 @app.route('/add_member', methods=['GET', 'POST'])
+@login_required
 def add_member():
     if request.method == 'POST':
         id = request.form['Id']
@@ -169,6 +174,7 @@ def add_member():
     return render_template('add_member.html')
 
 @app.route('/lend_book', methods=['GET', 'POST'])
+@login_required
 def lend_book():
     if request.method == 'POST':
         title = request.form['title']
@@ -176,22 +182,54 @@ def lend_book():
         date = request.form['date']
 
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO lending (title, mem_name, date) VALUES (%s, %s, %s)", 
-                    (title, member_name, date))
-        mysql.connection.commit()
-        cur.close()
+        cur.execute("SELECT available_copies FROM books WHERE title = %s", (title,))
+        available_copies = cur.fetchone()[0]
 
-        flash('Buku berhasil dipinjam!', 'success')
-        return redirect('/lend_book')
+        if available_copies > 0:
+            cur.execute("INSERT INTO lend (title, mem_name, date) VALUES (%s, %s, %s)", 
+                        (title, member_name, date))
+            cur.execute("UPDATE books SET available_copies = available_copies - 1 WHERE title = %s", (title,))
+            
+            # Memeriksa apakah available_copies menyentuh angka 0
+            cur.execute("SELECT available_copies FROM books WHERE title = %s", (title,))
+            updated_available_copies = cur.fetchone()[0]
+            if updated_available_copies == 0:
+                cur.execute("UPDATE books SET status = 'out of stock' WHERE title = %s", (title,))
+            
+            mysql.connection.commit()
+            flash('Buku berhasil dipinjam!', 'success')
+        else:
+            flash('Buku tidak tersedia untuk dipinjam.', 'danger')
+        
+        cur.close()
+        return redirect(url_for('lend_book'))
 
     cur = mysql.connection.cursor()
-    cur.execute("SELECT title FROM books")
+    cur.execute("SELECT title, available_copies FROM books")
     books = cur.fetchall()
+    cur.execute("SELECT name FROM member")
+    members = cur.fetchall()
     cur.execute("SELECT id, title, mem_name, date FROM lend")
     lendings = cur.fetchall()
     cur.close()
 
-    return render_template('lending.html', books=books, lendings=lendings)
+    return render_template('lending.html', books=books, members=members, lendings=lendings)
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT title FROM books")
+    books = cur.fetchall()
+    cur.execute("SELECT name FROM member")
+    members = cur.fetchall()
+    cur.execute("SELECT id, title, mem_name, date FROM lend")
+    lendings = cur.fetchall()
+    cur.close()
+
+    return render_template('lending.html', books=books, members=members, lendings=lendings)
+
+@app.route('/help')
+@login_required
+def help():
+    return render_template('help.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

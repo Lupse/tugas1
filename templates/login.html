@@ -4,13 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-family: inter, sans-serif;
+        }
+        
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        .image-container {
+            flex: 1;
+        }
+
+        .form-container {
+            background-color: rgba(222, 172, 128, 0.281);
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+
+        }
+
+
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 80%;
+            max-width: 300px;
+        }
+
+         button {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+
+        }
+
+        input {
+        padding: 0.75rem;
+        margin-block: 0.5em ;
+        border: 1px solid #919191;
+        border-radius: 5px;
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+        button {
+            background-color: rgb(222, 172, 128);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: rgb(145, 79, 30);
+        }
+
+        .message {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: green;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h2>Sign In</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
+    <div class="container">
+        <!-- Image Side -->
+        <div class="image-container">
+            <center>
+
+                <img src="{{ url_for('static', filename='images/login.png') }}" alt="">
+            </center>
+        </div>
+
+        <!-- Form Side -->
+        <div class="form-container">
+            <h2>Sign In</h2>
+
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% for category, message in messages %}
                 {% if category == 'danger' %}
@@ -19,22 +108,21 @@
                     <p style="color: green;">{{ message }}</p>
                 {% endif %}
             {% endfor %}
-        {% endwith %}
+            {% endwith %}
         
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+            <form method="POST">
+                <label>Username:</label>
+                <input type="text" name="username" required>
+                
+                <label>Password:</label>
+                <input type="password" name="password" required>
+                
+                <button type="submit">Sign In</button>
+            </form>
 
-    <form method="POST">
-        <label>Username:</label>
-        <input type="text" name="username" required><br><br>
-        
-        <label>Password:</label>
-        <input type="password" name="password" required><br><br>
-        
-        <button type="submit">Sign In</button>
-    </form>
+            <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+        </div>
+    </div>
 
-    <p>Belum punya akun? <a href="{{ url_for('signup') }}">Sign Up</a></p>
 </body>
 </html>

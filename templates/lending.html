@@ -2,18 +2,22 @@
 
 {% block content %}
 <style>
-    .lending-form {
+    .container {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 2rem;
         padding: 2rem;
+        width: 77vw; /* Full width of the viewport */
+        margin: 0; /* Remove default margin */
+    }
+    .lending-form, .table-content {
+        flex: 1;
         border: 1px solid #0000001f;
         border-radius: 10px;
         background-color: white;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-width: 800px;
-        width: 100%;
+        padding: 2rem;
     }
     h1 {
         font-size: 2.5rem;
@@ -79,17 +83,15 @@
         flex-direction: column;
         width: 100%;
     }
-    .section-2 {
-        width: 100%;
-    }
     .table-content {
         background-color: white;
         border-radius: 12px;
-        padding-block: 2em;
+        padding-top: 1em;
+        padding-bottom: 2em;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     }
     table {
-        width: 90%;
+        width: 100%;
         margin-top: 20px;
         border-radius: 10px;
         border-collapse: collapse;
@@ -131,40 +133,44 @@
 </div>
 
 <!-- content -->
-<div class="lending-form">
-    <form action="{{ url_for('lend_book') }}" method="POST">
-        <!-- section 1 -->
-        <div class="form-group" style="grid-column: span 3;">
-            <label for="title">Title</label>
-            <select name="title" id="title" required>
-                <option value="" disabled selected>Select a book title</option>
-                {% for book in books %}
-                    <option value="{{ book[0] }}">{{ book[0] }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group" style="grid-column: span 3;">
-            <label for="member_name">Member Name</label>
-            <input type="text" name="member_name" id="member_name" required placeholder="Input member name here">
-        </div>
-        
-        <div class="form-group" style="grid-column: span 3;">
-            <label for="date">Date</label>
-            <input type="date" name="date" id="date" required>
-        </div>
-        
-        <button type="submit">Lend Book</button>
-    </form>
-</div>
+<div class="container">
+    <div class="lending-form">
+        <form action="{{ url_for('lend_book') }}" method="POST">
+            <!-- section 1 -->
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="title">Title</label>
+                <select name="title" id="title" required>
+                    <option value="" disabled selected>Select a book title</option>
+                    {% for book in books %}
+                        <option value="{{ book[0] }}" {% if book[1] == 0 %}disabled{% endif %}>{{ book[0] }} {% if book[1] == 0 %}(Out of Stock){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="member_name">Member Name</label>
+                <select name="member_name" id="member_name" required>
+                    <option value="" disabled selected>Select a member name</option>
+                    {% for member in members %}
+                        <option value="{{ member[0] }}">{{ member[0] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="date">Date</label>
+                <input type="date" name="date" id="date" required>
+            </div>
+            
+            <button type="submit">Lend Book</button>
+        </form>
+    </div>
 
-<!-- Lending List -->
-<h1 style="margin-top: 1em;">
-    Lending List
-</h1>
-
-<div class="section-2">
+    <!-- Lending List -->
     <div class="table-content">
+        <h2 style="margin: 0px; text-align: start;">
+            Lending List
+        </h2>
         <center>
             <table>
                 <thead>
@@ -198,6 +204,10 @@
     $(document).ready(function() {
         $('#title').select2({
             placeholder: "Select a book title",
+            allowClear: true
+        });
+        $('#member_name').select2({
+            placeholder: "Select a member name",
             allowClear: true
         });
     });

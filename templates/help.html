@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<style>
+
+    .container {
+        padding: 30px;
+        
+    }
+
+    h1 {
+        color: #914F1E;
+        font-weight: bold;
+    }
+
+    .help-section {
+        margin-top: 20px;
+    }
+
+    .list-group-item {
+        padding: 1em;
+       display: block;
+       text-align: start;
+        color: #914F1E;
+    }
+
+    .list-group-item:hover {
+        background-color: #B5C18E;
+        color: #fff;
+        transition: 0.3s;
+    }
+
+    .text-muted {
+        color: #6B4226 !important;
+    }
+
+    h4{
+        margin: 0;
+    }
+</style>
+
+<div class="container">
+    <h1 class="text-center mt-4">Help Desk</h1>
+
+    <!-- Help Topics -->
+    <div class="help-section mx-auto w-75">
+
+        <div class="list-group">
+            <div href="#" class="list-group-item list-group-item-action">
+                <h4 >1. How do I add a new book to the library system?</h4>
+                <p class=" text-muted">To add a new book, go to the Admin Dashboard, navigate to "Books Management", and click "Add New Book". Fill in the book details, including title, author, ISBN, category, and availability status, then click "Save".</p>
+            </div>
+
+            <div href="#" class="list-group-item list-group-item-action">
+                <h4 >2. How can I manage library members</h4>
+                <p class=" text-muted">Admins can manage members by accessing the "Membership" section in the dashboard. From there, you can add, edit, or remove members, check their borrowing history, and update membership status.</p>
+            </div>
+
+            <div href="#" class="list-group-item list-group-item-action">
+                <h4>3. How do I update or delete a book entry?</h4>
+                <p class=" text-muted">In the "Books Management" section, find the book you want to update or delete. Click "Edit" to modify details or "Delete" to remove it from the system. Make sure to confirm deletion to avoid accidental removals.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
